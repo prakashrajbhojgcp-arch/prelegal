@@ -1,6 +1,7 @@
 import "server-only";
 import fs from "node:fs";
 import path from "node:path";
+import { parseMarkdownBlocks, type Block } from "./markdown-blocks";
 
 const TEMPLATES_DIR = path.join(process.cwd(), "..", "templates");
 
@@ -18,3 +19,6 @@ export const loadStandardTerms = (): string => {
     "**$1**",
   );
 };
+
+export const loadStandardTermsBlocks = (): Block[] =>
+  parseMarkdownBlocks(loadStandardTerms());

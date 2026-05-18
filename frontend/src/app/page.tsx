@@ -1,10 +1,16 @@
 import { NdaApp } from "@/components/nda-app";
-import { loadStandardTerms } from "@/lib/templates";
+import {
+  loadStandardTerms,
+  loadStandardTermsBlocks,
+} from "@/lib/templates";
+import type { Block } from "@/lib/markdown-blocks";
 
 export default function Page() {
   let standardTerms: string;
+  let standardTermsBlocks: Block[];
   try {
     standardTerms = loadStandardTerms();
+    standardTermsBlocks = loadStandardTermsBlocks();
   } catch (err) {
     throw new Error(
       "Could not load Mutual NDA Standard Terms from ../templates/Mutual-NDA.md. " +
@@ -13,5 +19,10 @@ export default function Page() {
       { cause: err },
     );
   }
-  return <NdaApp standardTerms={standardTerms} />;
+  return (
+    <NdaApp
+      standardTerms={standardTerms}
+      standardTermsBlocks={standardTermsBlocks}
+    />
+  );
 }
