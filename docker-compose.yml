@@ -1,0 +1,31 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: prelegal-backend
+    environment:
+      PRELEGAL_DATABASE_PATH: /app/data/prelegal.db
+      PRELEGAL_CATALOG_PATH: /repo/config.json
+      PRELEGAL_TEMPLATES_DIR: /repo/templates
+      PRELEGAL_CORS_ORIGINS: '["http://localhost:3000"]'
+      PRELEGAL_SESSION_SECRET: ${PRELEGAL_SESSION_SECRET:-dev-only-not-secret}
+    volumes:
+      # Mount the repo (read-only) so the backend can read config.json + templates/.
+      # The SQLite DB lives inside the container under /app/data and is wiped on
+      # every container start (no volume mount) — see CLAUDE.md "from scratch
+      # each time".
+      - ./config.json:/repo/config.json:ro
+      - ./templates:/repo/templates:ro
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: prelegal-frontend
+    environment:
+      BACKEND_URL: http://backend:8000
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"

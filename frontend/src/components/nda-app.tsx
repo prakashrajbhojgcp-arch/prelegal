@@ -1,5 +1,9 @@
 "use client";
 
+// Preserved from the PL-3 prototype. Not routed in the V1 foundation (PL-4);
+// re-integration will land in a later ticket once the document-creation flow
+// is reconnected to the backend.
+
 import { useCallback, useState } from "react";
 import { NdaForm } from "./nda-form";
 import { NdaPreview } from "./nda-preview";

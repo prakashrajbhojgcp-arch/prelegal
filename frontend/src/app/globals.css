@@ -3,6 +3,19 @@
 :root {
   --background: #f1f5f9;
   --foreground: #0f172a;
+  --brand-yellow: #ecad0a;
+  --brand-blue: #209dd7;
+  --brand-purple: #753991;
+  --brand-navy: #032147;
+  --brand-gray: #888888;
+}
+
+@theme inline {
+  --color-brand-yellow: var(--brand-yellow);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-purple: var(--brand-purple);
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-gray: var(--brand-gray);
 }
 
 body {

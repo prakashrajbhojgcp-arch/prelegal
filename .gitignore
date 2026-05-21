@@ -11,6 +11,9 @@ Thumbs.db
 *.sublime-project
 *.sublime-workspace
 
+# Claude Code per-user settings (not project policy)
+.claude/settings.local.json
+
 # ---------------------------------------------------------------------------
 # Environment variables / secrets
 # ---------------------------------------------------------------------------

@@ -5,7 +5,9 @@ import fs from "node:fs/promises";
 const normalize = (s: string) =>
   s.replace(/-\s*\n\s*/g, "").replace(/\s+/g, " ");
 
-test.describe("Download PDF", () => {
+// The NDA wizard is preserved but unrouted in the PL-4 V1 foundation. These
+// tests will be re-enabled when the wizard is reconnected.
+test.describe.skip("Download PDF", () => {
   test("downloads a PDF (not a print dialog) and the file contains the filled-in cover page + standard terms", async ({
     page,
   }) => {
