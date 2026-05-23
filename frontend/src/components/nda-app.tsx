@@ -1,9 +1,5 @@
 "use client";
 
-// Preserved from the PL-3 prototype. Not routed in the V1 foundation (PL-4);
-// re-integration will land in a later ticket once the document-creation flow
-// is reconnected to the backend.
-
 import { useCallback, useState } from "react";
 import { NdaForm } from "./nda-form";
 import { NdaPreview } from "./nda-preview";
@@ -71,38 +67,36 @@ export function NdaApp({ standardTerms, standardTermsBlocks }: Props) {
   }, [data, standardTermsBlocks]);
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      <header className="no-print sticky top-0 z-10 border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <div>
-            <h1 className="text-lg font-semibold text-slate-900">
-              Mutual NDA Creator
-            </h1>
-            <p className="text-xs text-slate-500">
-              Common Paper Mutual NDA, Version 1.0 — fill in the details to
-              generate a downloadable agreement.
+    <div className="space-y-8">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-brand-navy">
+            Mutual NDA Creator
+          </h1>
+          <p className="mt-1 text-sm text-brand-gray">
+            Common Paper Mutual NDA, Version 1.0 — fill in the details to
+            generate a downloadable agreement.
+          </p>
+        </div>
+        <div className="flex flex-col items-start gap-1 sm:items-end">
+          <button
+            type="button"
+            onClick={handleDownload}
+            disabled={status === "generating"}
+            data-testid="download-pdf"
+            className="inline-flex items-center gap-2 rounded-md bg-brand-purple px-4 py-2 text-sm font-medium text-white hover:bg-brand-purple/90 focus:outline-none focus:ring-2 focus:ring-brand-purple/40 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {status === "generating" ? "Generating…" : "Download PDF"}
+          </button>
+          {status === "error" ? (
+            <p className="text-xs text-red-600" role="alert">
+              Could not generate the PDF. Check the console and try again.
             </p>
-          </div>
-          <div className="flex flex-col items-end gap-1">
-            <button
-              type="button"
-              onClick={handleDownload}
-              disabled={status === "generating"}
-              data-testid="download-pdf"
-              className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/20 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {status === "generating" ? "Generating…" : "Download PDF"}
-            </button>
-            {status === "error" ? (
-              <p className="text-xs text-red-600" role="alert">
-                Could not generate the PDF. Check the console and try again.
-              </p>
-            ) : null}
-          </div>
+          ) : null}
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 py-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
         <section className="no-print">
           <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <NdaForm value={data} onChange={setData} />
@@ -112,7 +106,7 @@ export function NdaApp({ standardTerms, standardTermsBlocks }: Props) {
         <section>
           <NdaPreview value={data} standardTerms={standardTerms} />
         </section>
-      </main>
+      </div>
     </div>
   );
 }
