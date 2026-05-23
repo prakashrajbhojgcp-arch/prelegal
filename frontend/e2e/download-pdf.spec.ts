@@ -1,13 +1,28 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { PDFParse } from "pdf-parse";
 import fs from "node:fs/promises";
 
 const normalize = (s: string) =>
   s.replace(/-\s*\n\s*/g, "").replace(/\s+/g, " ");
 
-// The NDA wizard is preserved but unrouted in the PL-4 V1 foundation. These
-// tests will be re-enabled when the wizard is reconnected.
-test.describe.skip("Download PDF", () => {
+const uniqueEmail = () =>
+  `nda-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
+
+const signInAndOpenMutualNda = async (page: Page) => {
+  await page.goto("/login");
+  await page.getByLabel("Email").fill(uniqueEmail());
+  await page.getByLabel("Name").fill("Ada Lovelace");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+
+  await page.locator('a[href="/dashboard/templates/mutual-nda"]').click();
+  await expect(page).toHaveURL(/\/dashboard\/templates\/mutual-nda$/);
+  await expect(
+    page.getByRole("heading", { name: "Mutual NDA Creator" }),
+  ).toBeVisible();
+};
+
+test.describe("Download PDF", () => {
   test("downloads a PDF (not a print dialog) and the file contains the filled-in cover page + standard terms", async ({
     page,
   }) => {
@@ -23,11 +38,7 @@ test.describe.skip("Download PDF", () => {
       };
     });
 
-    await page.goto("/");
-
-    await expect(
-      page.getByRole("heading", { name: "Mutual NDA Creator" }),
-    ).toBeVisible();
+    await signInAndOpenMutualNda(page);
 
     await page.getByLabel("Purpose").fill("Evaluating a cloud partnership.");
     await page
@@ -107,7 +118,7 @@ test.describe.skip("Download PDF", () => {
   test("downloads with the generic filename when no party companies are entered", async ({
     page,
   }) => {
-    await page.goto("/");
+    await signInAndOpenMutualNda(page);
     const downloadPromise = page.waitForEvent("download", { timeout: 60_000 });
     await page.getByTestId("download-pdf").click();
     const download = await downloadPromise;
@@ -117,7 +128,7 @@ test.describe.skip("Download PDF", () => {
   test("re-enables the Download button after a successful download", async ({
     page,
   }) => {
-    await page.goto("/");
+    await signInAndOpenMutualNda(page);
     const button = page.getByTestId("download-pdf");
     await expect(button).toBeEnabled();
     const downloadPromise = page.waitForEvent("download", { timeout: 60_000 });
@@ -130,8 +141,7 @@ test.describe.skip("Download PDF", () => {
   test("reflects 'In perpetuity' confidentiality choice in the rendered PDF", async ({
     page,
   }) => {
-    await page.goto("/");
-    // Choose the perpetuity radio for Term of Confidentiality
+    await signInAndOpenMutualNda(page);
     await page
       .getByRole("group", { name: "Term of Confidentiality" })
       .getByRole("radio", { name: "In perpetuity" })
