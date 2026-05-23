@@ -68,7 +68,7 @@ export function NdaApp({ standardTerms, standardTermsBlocks }: Props) {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <header className="no-print flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-brand-navy">
             Mutual NDA Creator
