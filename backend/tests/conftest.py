@@ -22,3 +22,14 @@ def client(tmp_path) -> Iterator[TestClient]:
     app = create_app()
     with TestClient(app) as c:
         yield c
+
+
+@pytest.fixture
+def auth_client(client: TestClient) -> TestClient:
+    """A TestClient that has already signed in via fake-auth."""
+    response = client.post(
+        "/api/auth/login",
+        json={"email": "chat-tester@example.com", "name": "Chat Tester"},
+    )
+    assert response.status_code == 200, response.text
+    return client
