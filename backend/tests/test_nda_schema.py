@@ -8,6 +8,8 @@ from prelegal_backend.nda_schema import (
     Party,
     MndaTerm,
     ConfidentialityTerm,
+    PartialNdaData,
+    deep_merge_fields,
 )
 
 
@@ -79,3 +81,45 @@ def test_party_round_trip_camel_case() -> None:
     p = Party.model_validate(raw)
     assert p.notice_address == "a"
     assert p.model_dump(by_alias=True)["noticeAddress"] == "a"
+
+
+def test_partial_nda_data_accepts_empty_object() -> None:
+    p = PartialNdaData.model_validate({})
+    assert p.governing_law is None
+    assert p.party1 is None
+
+
+def test_deep_merge_updates_only_provided_leaves() -> None:
+    current = NdaData.model_validate(_sample_nda_data_wire())
+    partial = PartialNdaData.model_validate(
+        {"governingLaw": "California", "party1": {"company": "NewName Inc."}}
+    )
+    merged = deep_merge_fields(current, partial)
+    assert merged.governing_law == "California"
+    assert merged.party1.company == "NewName Inc."
+    # untouched fields preserved
+    assert merged.party1.name == "Ada Lovelace"
+    assert merged.party2.company == "Globex Corp."
+    assert merged.jurisdiction == "New Castle, DE"
+
+
+def test_deep_merge_replaces_discriminated_union_atomically() -> None:
+    current = NdaData.model_validate(_sample_nda_data_wire())
+    # switching from "years" to "untilTerminated" should drop the years field
+    partial = PartialNdaData.model_validate(
+        {"mndaTerm": {"kind": "untilTerminated"}}
+    )
+    merged = deep_merge_fields(current, partial)
+    assert merged.mnda_term.kind == "untilTerminated"
+    # The "untilTerminated" variant has no years field. The merged term must
+    # not retain a `years` value from the prior "years" variant.
+    # Accept either: attribute missing OR attribute equals None (RootModel
+    # wrappers may expose pass-through properties returning None).
+    years_attr = getattr(merged.mnda_term, "years", None)
+    assert years_attr is None
+
+
+def test_deep_merge_returns_same_data_when_partial_is_empty() -> None:
+    current = NdaData.model_validate(_sample_nda_data_wire())
+    merged = deep_merge_fields(current, PartialNdaData())
+    assert merged.model_dump() == current.model_dump()
