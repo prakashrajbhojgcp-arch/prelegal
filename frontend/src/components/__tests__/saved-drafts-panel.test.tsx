@@ -87,7 +87,7 @@ describe("SavedDraftsPanel", () => {
 
     await waitFor(() => expect(deleteSpy).toHaveBeenCalledWith(7));
     expect(onDeleted).toHaveBeenCalledWith(7);
-    expect(listSpy).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(2));
   });
 
   it("surfaces an alert when the list call fails", async () => {

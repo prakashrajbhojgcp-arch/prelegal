@@ -43,24 +43,31 @@ export function SavedDraftsPanel({
   const [drafts, setDrafts] = useState<DocumentSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [deleteState, setDeleteState] = useState<DeleteState>({ kind: "idle" });
-
-  const refresh = useCallback(async () => {
-    setError(null);
-    try {
-      const list = await listDocuments(slug);
-      setDrafts(list);
-    } catch (err) {
-      const detail =
-        err instanceof DocumentsClientError
-          ? err.detail
-          : "Could not load saved drafts.";
-      setError(detail);
-    }
-  }, [slug]);
+  const [refreshCounter, setRefreshCounter] = useState(0);
 
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    let cancelled = false;
+    listDocuments(slug).then(
+      (list) => {
+        if (cancelled) return;
+        setError(null);
+        setDrafts(list);
+      },
+      (err: unknown) => {
+        if (cancelled) return;
+        const detail =
+          err instanceof DocumentsClientError
+            ? err.detail
+            : "Could not load saved drafts.";
+        setError(detail);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, refreshCounter]);
+
+  const refresh = useCallback(() => setRefreshCounter((c) => c + 1), []);
 
   const handleConfirmDelete = useCallback(
     async (id: number) => {
@@ -68,7 +75,7 @@ export function SavedDraftsPanel({
       try {
         await deleteDocument(id);
         onDeleted(id);
-        await refresh();
+        refresh();
       } catch (err) {
         const detail =
           err instanceof DocumentsClientError
