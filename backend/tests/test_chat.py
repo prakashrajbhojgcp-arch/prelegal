@@ -122,3 +122,36 @@ def test_handle_turn_raises_502_on_malformed_json(monkeypatch: pytest.MonkeyPatc
         handle_turn([ChatMessage(role="user", content="hi")], _empty_fields())
     assert exc.value.status_code == 502
     assert "invalid" in exc.value.detail.lower()
+
+
+def test_handle_turn_caps_history_at_60(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, Any] = {}
+
+    def fake(**kwargs):
+        captured.update(kwargs)
+        return _fake_completion(
+            json.dumps(
+                {
+                    "assistant_message": "ok",
+                    "updated_fields": {},
+                    "is_complete": False,
+                }
+            )
+        )
+
+    monkeypatch.setattr(chat_module, "completion", fake)
+
+    # 100 user/assistant alternating messages — the cap should keep the last 60.
+    history = [
+        ChatMessage(role="user" if i % 2 == 0 else "assistant", content=f"msg-{i}")
+        for i in range(100)
+    ]
+    handle_turn(history, _empty_fields())
+
+    forwarded = captured["messages"]
+    # 1 system + at most MAX_HISTORY (60) chat messages
+    assert forwarded[0]["role"] == "system"
+    assert len(forwarded) - 1 == chat_module.MAX_HISTORY
+    # The kept slice is the most-recent 60: msg-40 through msg-99.
+    assert forwarded[1]["content"] == "msg-40"
+    assert forwarded[-1]["content"] == "msg-99"
