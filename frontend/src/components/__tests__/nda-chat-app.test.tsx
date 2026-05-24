@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, vi, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
 import { NdaChatApp } from "@/components/nda-chat-app";
 import { defaultNdaData } from "@/lib/nda-schema";
+import type { Block } from "@/lib/markdown-blocks";
 import * as chatClient from "@/lib/nda-chat-client";
 
 afterEach(() => {
@@ -11,7 +12,9 @@ afterEach(() => {
 });
 
 const STANDARD_TERMS = "# Standard Terms\n\nDummy.";
-const STANDARD_TERMS_BLOCKS = [{ kind: "p", text: "Dummy." } as any];
+const STANDARD_TERMS_BLOCKS: Block[] = [
+  { kind: "paragraph", children: [{ kind: "text", value: "Dummy." }] },
+];
 
 describe("NdaChatApp", () => {
   it("renders the initial assistant greeting on mount", () => {
