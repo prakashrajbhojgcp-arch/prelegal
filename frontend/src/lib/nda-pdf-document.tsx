@@ -67,8 +67,15 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   cellLabel: {
-    width: "22%",
-    flex: 0,
+    // Override the parent `cell` style's `flex: 1` (which sets
+    // flexGrow:1 / flexShrink:1 / flexBasis:0). In react-pdf's Yoga
+    // layout, `flex: 0` only resets flexGrow, leaving flexShrink:1 and
+    // flexBasis:0 — which causes the label cell to collapse to ~17pt
+    // regardless of `width: "22%"`. Set the three flex properties
+    // explicitly so the label column actually takes its 22% basis.
+    flexGrow: 0,
+    flexShrink: 0,
+    flexBasis: "22%",
     fontFamily: "Helvetica-Bold",
     backgroundColor: palette.cellHeader,
   },

@@ -9,6 +9,7 @@ services:
       PRELEGAL_TEMPLATES_DIR: /repo/templates
       PRELEGAL_CORS_ORIGINS: '["http://localhost:3000"]'
       PRELEGAL_SESSION_SECRET: ${PRELEGAL_SESSION_SECRET:-dev-only-not-secret}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
     volumes:
       # Mount the repo (read-only) so the backend can read config.json + templates/.
       # The SQLite DB lives inside the container under /app/data and is wiped on

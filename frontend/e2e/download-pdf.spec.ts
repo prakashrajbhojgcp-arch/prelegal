@@ -40,6 +40,11 @@ test.describe("Download PDF", () => {
 
     await signInAndOpenMutualNda(page);
 
+    // Open the "Edit fields manually" panel so the form labels become visible.
+    const editSummary1 = page.getByText("Edit fields manually", { exact: true });
+    await editSummary1.click();
+    await expect(page.getByLabel("Purpose")).toBeVisible();
+
     await page.getByLabel("Purpose").fill("Evaluating a cloud partnership.");
     await page
       .getByLabel("Effective Date", { exact: true })
@@ -142,6 +147,12 @@ test.describe("Download PDF", () => {
     page,
   }) => {
     await signInAndOpenMutualNda(page);
+
+    // Open the "Edit fields manually" panel so the form labels become visible.
+    const editSummary4 = page.getByText("Edit fields manually", { exact: true });
+    await editSummary4.click();
+    await expect(page.getByLabel("Purpose")).toBeVisible();
+
     await page
       .getByRole("group", { name: "Term of Confidentiality" })
       .getByRole("radio", { name: "In perpetuity" })
