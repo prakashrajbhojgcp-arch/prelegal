@@ -1,0 +1,23 @@
+{
+  "purpose": "Evaluating a deal.",
+  "effectiveDate": "2026-05-23",
+  "mndaTerm": { "kind": "years", "years": 2 },
+  "confidentialityTerm": { "kind": "perpetuity" },
+  "governingLaw": "Delaware",
+  "jurisdiction": "New Castle, DE",
+  "modifications": "",
+  "party1": {
+    "name": "Ada Lovelace",
+    "title": "CEO",
+    "company": "Acme Inc.",
+    "noticeAddress": "1 Main St",
+    "date": "2026-05-23"
+  },
+  "party2": {
+    "name": "Grace Hopper",
+    "title": "CTO",
+    "company": "Globex Corp.",
+    "noticeAddress": "ada@globex.com",
+    "date": "2026-05-23"
+  }
+}
