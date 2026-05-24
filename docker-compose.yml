@@ -26,7 +26,14 @@ services:
     container_name: prelegal-frontend
     environment:
       BACKEND_URL: http://backend:8000
+      # Server Components in /dashboard/templates/<slug> read the markdown
+      # body via lib/templates/loader.ts. The default is
+      # `<cwd>/../templates` which doesn't exist inside the container; pin
+      # to the mounted path so SSR can find the files.
+      PRELEGAL_TEMPLATES_DIR: /repo/templates
     depends_on:
       - backend
+    volumes:
+      - ./templates:/repo/templates:ro
     ports:
       - "3000:3000"

@@ -1,10 +1,16 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi, afterEach } from "vitest";
+import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
 import { NdaChatApp } from "@/components/nda-chat-app";
 import { defaultNdaData } from "@/lib/templates/mutual-nda/schema";
 import type { Block } from "@/lib/markdown-blocks";
 import * as chatClient from "@/lib/templates/chat-client";
+import * as documentsClient from "@/lib/templates/documents-client";
+
+beforeEach(() => {
+  // Default: no saved drafts. Individual tests can override.
+  vi.spyOn(documentsClient, "listDocuments").mockResolvedValue([]);
+});
 
 afterEach(() => {
   cleanup();
@@ -133,5 +139,34 @@ describe("NdaChatApp", () => {
     expect(await screen.findByText(/Ready to download/i)).toBeDefined();
     const download = screen.getByTestId("download-pdf") as HTMLButtonElement;
     expect(download.disabled).toBe(false);
+  });
+
+  it("calls createDocument when Save draft is clicked the first time", async () => {
+    vi.spyOn(chatClient, "sendChatTurn").mockResolvedValue({
+      assistantMessage: "ok",
+      mergedFields: defaultNdaData(),
+      isComplete: false,
+    });
+    const createSpy = vi
+      .spyOn(documentsClient, "createDocument")
+      .mockResolvedValue({
+        id: 42,
+        slug: "mutual-nda",
+        title: "Acme ↔ Globex",
+        fields: defaultNdaData(),
+        updatedAt: "2026-05-24 00:00:00",
+      });
+
+    render(
+      <NdaChatApp
+        standardTerms={STANDARD_TERMS}
+        standardTermsBlocks={STANDARD_TERMS_BLOCKS}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId("save-draft"));
+
+    await waitFor(() => expect(createSpy).toHaveBeenCalledTimes(1));
+    expect(createSpy.mock.calls[0][0].slug).toBe("mutual-nda");
   });
 });
