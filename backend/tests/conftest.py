@@ -26,10 +26,14 @@ def client(tmp_path) -> Iterator[TestClient]:
 
 @pytest.fixture
 def auth_client(client: TestClient) -> TestClient:
-    """A TestClient that has already signed in via fake-auth."""
+    """A TestClient that has already signed up and is logged in."""
     response = client.post(
-        "/api/auth/login",
-        json={"email": "chat-tester@example.com", "name": "Chat Tester"},
+        "/api/auth/signup",
+        json={
+            "email": "chat-tester@example.com",
+            "name": "Chat Tester",
+            "password": "hunter22-secret",
+        },
     )
-    assert response.status_code == 200, response.text
+    assert response.status_code == 201, response.text
     return client

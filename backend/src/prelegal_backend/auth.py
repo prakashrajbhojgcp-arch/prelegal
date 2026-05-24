@@ -60,9 +60,15 @@ def current_user(
     return user
 
 
-class LoginRequest(BaseModel):
+class SignupRequest(BaseModel):
     email: EmailStr
     name: str = Field(min_length=1, max_length=120)
+    password: str = Field(min_length=8, max_length=200)
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=1, max_length=200)
 
 
 class UserOut(BaseModel):
@@ -78,13 +84,39 @@ class UserOut(BaseModel):
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
+@router.post(
+    "/signup", response_model=UserOut, status_code=status.HTTP_201_CREATED
+)
+def signup(
+    body: SignupRequest,
+    response: Response,
+    db: Annotated[sqlite3.Connection, Depends(get_db)],
+) -> UserOut:
+    try:
+        user = users.create_with_password(
+            db, email=body.email, name=body.name, password=body.password
+        )
+    except users.EmailAlreadyRegistered:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An account already exists for that email.",
+        )
+    _issue_cookie(response, user.id)
+    return UserOut.from_user(user)
+
+
 @router.post("/login", response_model=UserOut)
 def login(
     body: LoginRequest,
     response: Response,
     db: Annotated[sqlite3.Connection, Depends(get_db)],
 ) -> UserOut:
-    user = users.get_or_create_by_email(db, email=body.email, name=body.name)
+    user = users.verify_password(db, email=body.email, password=body.password)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password.",
+        )
     _issue_cookie(response, user.id)
     return UserOut.from_user(user)
 
