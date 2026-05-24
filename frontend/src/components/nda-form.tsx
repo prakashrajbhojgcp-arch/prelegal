@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
-import type { NdaData, Party } from "@/lib/nda-schema";
+import type { NdaData, Party } from "@/lib/templates/mutual-nda/schema";
 
 type FieldProps = {
   label: string;
@@ -275,8 +275,17 @@ function TermPicker({
 }: TermPickerProps) {
   // Remember the last user-entered years so toggling to the no-expiry option
   // and back doesn't silently reset the value to 1.
-  const lastYears = useRef(inYears ? years : 1);
-  if (inYears) lastYears.current = years;
+  const [savedYears, setSavedYears] = useState(years);
+  const displayYears = inYears ? years : savedYears;
+
+  const handleSelectYears = (next: number) => {
+    setSavedYears(next);
+    onSelectYears(next);
+  };
+  const handleSelectNoExpiry = () => {
+    setSavedYears(inYears ? years : savedYears);
+    onSelectNoExpiry();
+  };
 
   return (
     <fieldset className="space-y-2">
@@ -286,7 +295,7 @@ function TermPicker({
           type="radio"
           name={name}
           checked={inYears}
-          onChange={() => onSelectYears(lastYears.current)}
+          onChange={() => handleSelectYears(displayYears)}
           className="size-4"
         />
         <span>Expires</span>
@@ -294,10 +303,10 @@ function TermPicker({
           type="number"
           min={1}
           className={cn(inputCx, "w-20")}
-          value={inYears ? years : lastYears.current}
+          value={displayYears}
           disabled={!inYears}
           onChange={(e) =>
-            onSelectYears(Math.max(1, Number(e.target.value) || 1))
+            handleSelectYears(Math.max(1, Number(e.target.value) || 1))
           }
         />
         <span>{yearsSuffix}</span>
@@ -307,7 +316,7 @@ function TermPicker({
           type="radio"
           name={name}
           checked={!inYears}
-          onChange={onSelectNoExpiry}
+          onChange={handleSelectNoExpiry}
           className="size-4"
         />
         <span>{noExpiryLabel}</span>

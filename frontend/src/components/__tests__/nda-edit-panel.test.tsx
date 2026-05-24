@@ -2,7 +2,7 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { NdaEditPanel } from "@/components/nda-edit-panel";
-import { defaultNdaData } from "@/lib/nda-schema";
+import { defaultNdaData } from "@/lib/templates/mutual-nda/schema";
 
 afterEach(cleanup);
 

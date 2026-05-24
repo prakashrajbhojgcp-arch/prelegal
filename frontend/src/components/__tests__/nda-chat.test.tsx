@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { NdaChat } from "@/components/nda-chat";
-import type { ChatMessage } from "@/lib/nda-chat-types";
+import type { ChatMessage } from "@/lib/templates/chat-types";
 
 afterEach(cleanup);
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import fixture from "./nda-schema-parity.fixture.json";
-import type { NdaData } from "@/lib/nda-schema";
+import type { NdaData } from "@/lib/templates/mutual-nda/schema";
 
 describe("NdaData ↔ fixture parity", () => {
   it("the fixture is assignable to NdaData", () => {

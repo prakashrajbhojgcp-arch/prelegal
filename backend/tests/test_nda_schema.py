@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from prelegal_backend.nda_schema import (
+from prelegal_backend.templates.mutual_nda.schema import (
     NdaData,
     Party,
     MndaTerm,

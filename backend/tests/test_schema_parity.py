@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from prelegal_backend.nda_schema import NdaData
+from prelegal_backend.templates.mutual_nda.schema import NdaData
 
 FIXTURE_PATH = (
     Path(__file__).resolve().parents[2]

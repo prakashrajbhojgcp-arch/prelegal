@@ -5,9 +5,9 @@ import { NdaChat, type ChatStatus } from "./nda-chat";
 import { NdaPreview } from "./nda-preview";
 import { NdaEditPanel } from "./nda-edit-panel";
 import type { Block } from "@/lib/markdown-blocks";
-import { defaultNdaData, type NdaData } from "@/lib/nda-schema";
-import type { ChatMessage } from "@/lib/nda-chat-types";
-import { sendChatTurn, ChatError } from "@/lib/nda-chat-client";
+import { defaultNdaData, type NdaData } from "@/lib/templates/mutual-nda/schema";
+import type { ChatMessage } from "@/lib/templates/chat-types";
+import { sendChatTurn, ChatError } from "@/lib/templates/chat-client";
 
 type Props = {
   standardTerms: string;
@@ -65,7 +65,7 @@ export function NdaChatApp({ standardTerms, standardTermsBlocks }: Props) {
       setChatStatus("sending");
       setErrorMessage(null);
       try {
-        const result = await sendChatTurn(nextMessages, fields);
+        const result = await sendChatTurn<NdaData>("mutual-nda", nextMessages, fields);
         setMessages(
           capMessages([
             ...nextMessages,
@@ -98,7 +98,7 @@ export function NdaChatApp({ standardTerms, standardTermsBlocks }: Props) {
     try {
       const [{ pdf }, { NdaPdfDocument }] = await Promise.all([
         import("@react-pdf/renderer"),
-        import("@/lib/nda-pdf-document"),
+        import("@/lib/templates/mutual-nda/pdf-document"),
       ]);
       const blob = await pdf(
         <NdaPdfDocument

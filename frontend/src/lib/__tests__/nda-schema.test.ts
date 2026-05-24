@@ -3,7 +3,7 @@ import {
   DEFAULT_PURPOSE,
   defaultNdaData,
   emptyParty,
-} from "@/lib/nda-schema";
+} from "@/lib/templates/mutual-nda/schema";
 
 describe("defaultNdaData", () => {
   it("returns a fresh object each call", () => {

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { sendChatTurn, ChatError } from "@/lib/nda-chat-client";
-import type { ChatMessage } from "@/lib/nda-chat-types";
-import { defaultNdaData } from "@/lib/nda-schema";
+import { sendChatTurn, ChatError } from "@/lib/templates/chat-client";
+import type { ChatMessage } from "@/lib/templates/chat-types";
+import { defaultNdaData } from "@/lib/templates/mutual-nda/schema";
 
 describe("sendChatTurn", () => {
   afterEach(() => {
@@ -25,7 +25,7 @@ describe("sendChatTurn", () => {
       { role: "assistant", content: "Hi" },
       { role: "user", content: "Acme" },
     ];
-    const result = await sendChatTurn(messages, defaultNdaData());
+    const result = await sendChatTurn("mutual-nda", messages, defaultNdaData());
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0];
@@ -53,14 +53,14 @@ describe("sendChatTurn", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(
-      sendChatTurn([{ role: "user", content: "hi" }], defaultNdaData()),
+      sendChatTurn("mutual-nda", [{ role: "user", content: "hi" }], defaultNdaData()),
     ).rejects.toMatchObject({
       name: "ChatError",
       status: 502,
       detail: "AI service unavailable",
     });
     await expect(
-      sendChatTurn([{ role: "user", content: "hi" }], defaultNdaData()),
+      sendChatTurn("mutual-nda", [{ role: "user", content: "hi" }], defaultNdaData()),
     ).rejects.toBeInstanceOf(ChatError);
   });
 });

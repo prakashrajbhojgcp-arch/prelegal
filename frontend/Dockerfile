@@ -17,7 +17,10 @@ ARG BACKEND_URL=http://backend:8000
 ENV BACKEND_URL=${BACKEND_URL}
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+# `public/` is optional in Next.js but the runner stage COPYs it
+# unconditionally; ensure it exists so the build doesn't fail when the
+# repo has no static assets.
+RUN mkdir -p public && npm run build
 
 FROM node:22-alpine AS runner
 WORKDIR /app
