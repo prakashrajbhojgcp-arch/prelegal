@@ -7,6 +7,7 @@ import {
   View,
 } from "@react-pdf/renderer";
 import type { ReactElement } from "react";
+import { DISCLAIMER_FOOTER } from "../../disclaimer";
 import { formatDate } from "../../format";
 import type { Block, Inline } from "../../markdown-blocks";
 import type { FieldDef, GenericData } from "./schema";
@@ -109,6 +110,15 @@ const styles = StyleSheet.create({
   boldItalic: { fontFamily: "Helvetica-BoldOblique" },
   linkText: { color: "#1d4ed8", textDecoration: "underline" },
   placeholder: { color: palette.faint },
+  footer: {
+    position: "absolute",
+    bottom: 28,
+    left: 56,
+    right: 56,
+    textAlign: "center",
+    fontSize: 8,
+    color: palette.faint,
+  },
 });
 
 type InlineCtx = { bold?: boolean; italic?: boolean };
@@ -323,6 +333,10 @@ export const GenericPdfDocument = ({
       <View style={styles.rule} />
 
       <View>{standardTermsBlocks.map((b, i) => renderBlock(b, i))}</View>
+
+      <Text fixed style={styles.footer}>
+        {DISCLAIMER_FOOTER}
+      </Text>
     </Page>
   </Document>
 );
