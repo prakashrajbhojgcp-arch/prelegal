@@ -1,4 +1,4 @@
-import { NdaApp } from "@/components/nda-app";
+import { NdaChatApp } from "@/components/nda-chat-app";
 import {
   loadStandardTerms,
   loadStandardTermsBlocks,
@@ -12,7 +12,7 @@ export default async function MutualNdaPage() {
   const standardTerms = loadStandardTerms();
   const standardTermsBlocks = loadStandardTermsBlocks();
   return (
-    <NdaApp
+    <NdaChatApp
       standardTerms={standardTerms}
       standardTermsBlocks={standardTermsBlocks}
     />
