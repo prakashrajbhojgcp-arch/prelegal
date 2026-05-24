@@ -6,9 +6,10 @@ from typing import Any
 
 import pytest
 
-from prelegal_backend import chat as chat_module
-from prelegal_backend.chat import ChatMessage, handle_turn
-from prelegal_backend.nda_schema import NdaData
+from prelegal_backend.templates import chat_engine as chat_module
+from prelegal_backend.templates.chat_engine import ChatMessage, handle_turn
+from prelegal_backend.templates.mutual_nda.schema import NdaData
+from prelegal_backend.templates.mutual_nda.spec import SPEC
 
 
 def _empty_fields() -> NdaData:
@@ -61,7 +62,7 @@ def test_handle_turn_merges_updated_fields(monkeypatch: pytest.MonkeyPatch) -> N
         ChatMessage(role="assistant", content="Hi — who are the two parties?"),
         ChatMessage(role="user", content="Acme Inc. and Globex Corp."),
     ]
-    response = handle_turn(messages, _empty_fields())
+    response = handle_turn(SPEC, messages, _empty_fields())
 
     assert response.assistant_message == "Got it — what state should govern?"
     assert response.merged_fields.party1.company == "Acme Inc."
@@ -73,9 +74,16 @@ def test_handle_turn_merges_updated_fields(monkeypatch: pytest.MonkeyPatch) -> N
     assert captured["model"] == "openrouter/openai/gpt-oss-120b"
     assert captured["extra_body"] == {"provider": {"order": ["cerebras"]}}
     assert captured["reasoning_effort"] == "low"
-    # response_format must be the ChatTurn class so LiteLLM can request
-    # Structured Outputs from the provider.
-    assert captured["response_format"] is chat_module.ChatTurn
+    # response_format must be a Pydantic ChatTurn model with the three fields
+    # so LiteLLM can request Structured Outputs from the provider.
+    turn_model = captured["response_format"]
+    assert set(turn_model.model_fields.keys()) == {
+        "assistant_message",
+        "updated_fields",
+        "is_complete",
+    }
+    # And `updated_fields` must be keyed to the spec's partial model.
+    assert turn_model.model_fields["updated_fields"].annotation is SPEC.partial_model
 
 
 def test_handle_turn_raises_502_on_empty_message(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -94,7 +102,7 @@ def test_handle_turn_raises_502_on_empty_message(monkeypatch: pytest.MonkeyPatch
     )
 
     with pytest.raises(chat_module.HTTPException) as exc:
-        handle_turn([ChatMessage(role="user", content="hi")], _empty_fields())
+        handle_turn(SPEC, [ChatMessage(role="user", content="hi")], _empty_fields())
     assert exc.value.status_code == 502
     assert "empty" in exc.value.detail.lower()
 
@@ -106,7 +114,7 @@ def test_handle_turn_raises_502_on_llm_error(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setattr(chat_module, "completion", boom)
 
     with pytest.raises(chat_module.HTTPException) as exc:
-        handle_turn([ChatMessage(role="user", content="hi")], _empty_fields())
+        handle_turn(SPEC, [ChatMessage(role="user", content="hi")], _empty_fields())
     assert exc.value.status_code == 502
     assert exc.value.detail == "AI service unavailable"
 
@@ -119,7 +127,7 @@ def test_handle_turn_raises_502_on_malformed_json(monkeypatch: pytest.MonkeyPatc
     )
 
     with pytest.raises(chat_module.HTTPException) as exc:
-        handle_turn([ChatMessage(role="user", content="hi")], _empty_fields())
+        handle_turn(SPEC, [ChatMessage(role="user", content="hi")], _empty_fields())
     assert exc.value.status_code == 502
     assert "invalid" in exc.value.detail.lower()
 
@@ -146,7 +154,7 @@ def test_handle_turn_caps_history_at_60(monkeypatch: pytest.MonkeyPatch) -> None
         ChatMessage(role="user" if i % 2 == 0 else "assistant", content=f"msg-{i}")
         for i in range(100)
     ]
-    handle_turn(history, _empty_fields())
+    handle_turn(SPEC, history, _empty_fields())
 
     forwarded = captured["messages"]
     # 1 system + at most MAX_HISTORY (60) chat messages
@@ -220,3 +228,11 @@ def test_chat_endpoint_propagates_502_on_llm_error(monkeypatch, auth_client) -> 
     )
     assert response.status_code == 502
     assert response.json()["detail"] == "AI service unavailable"
+
+
+def test_chat_endpoint_404s_unknown_slug(auth_client) -> None:
+    response = auth_client.post(
+        "/api/templates/no-such-template/chat",
+        json=_sample_request_body(),
+    )
+    assert response.status_code == 404

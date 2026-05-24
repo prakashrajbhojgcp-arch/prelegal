@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import type { ChatMessage } from "@/lib/nda-chat-types";
+import type { ChatMessage } from "@/lib/templates/chat-types";
 
 export type ChatStatus = "idle" | "sending" | "error";
 

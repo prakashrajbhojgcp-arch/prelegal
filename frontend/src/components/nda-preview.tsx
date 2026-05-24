@@ -2,7 +2,7 @@
 
 import ReactMarkdown from "react-markdown";
 import { formatDate, pluralYears } from "@/lib/format";
-import type { NdaData } from "@/lib/nda-schema";
+import type { NdaData } from "@/lib/templates/mutual-nda/schema";
 import { cn } from "@/lib/utils";
 
 type Props = {

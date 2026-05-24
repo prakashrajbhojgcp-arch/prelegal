@@ -2,7 +2,7 @@ import { NdaChatApp } from "@/components/nda-chat-app";
 import {
   loadStandardTerms,
   loadStandardTermsBlocks,
-} from "@/lib/templates";
+} from "@/lib/templates/loader";
 
 export const metadata = {
   title: "Mutual NDA Creator · Prelegal",

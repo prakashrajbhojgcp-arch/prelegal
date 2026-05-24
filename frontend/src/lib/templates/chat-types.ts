@@ -1,17 +1,15 @@
-import type { NdaData } from "./nda-schema";
-
 export type ChatMessage = {
   role: "user" | "assistant";
   content: string;
 };
 
-export type ChatRequest = {
+export type ChatRequest<Data> = {
   messages: ChatMessage[];
-  current_fields: NdaData;
+  current_fields: Data;
 };
 
-export type ChatResponse = {
+export type ChatResponse<Data> = {
   assistantMessage: string;
-  mergedFields: NdaData;
+  mergedFields: Data;
   isComplete: boolean;
 };

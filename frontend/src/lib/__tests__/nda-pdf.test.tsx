@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { PDFParse } from "pdf-parse";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
-import { loadStandardTermsBlocks } from "@/lib/templates";
-import { defaultNdaData, type NdaData } from "@/lib/nda-schema";
-import { NdaPdfDocument } from "@/lib/nda-pdf-document";
+import { loadStandardTermsBlocks } from "@/lib/templates/loader";
+import { defaultNdaData, type NdaData } from "@/lib/templates/mutual-nda/schema";
+import { NdaPdfDocument } from "@/lib/templates/mutual-nda/pdf-document";
 
 const blocks = loadStandardTermsBlocks();
 

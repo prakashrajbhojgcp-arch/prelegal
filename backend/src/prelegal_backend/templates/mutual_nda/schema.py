@@ -1,4 +1,5 @@
-"""Pydantic mirror of the TS NdaData shape in frontend/src/lib/nda-schema.ts.
+"""Pydantic mirror of the TS NdaData shape in
+frontend/src/lib/templates/mutual-nda/schema.ts.
 
 Wire format is camelCase (to match the TS shape); Python attributes use
 snake_case via Field aliases.
@@ -8,20 +9,9 @@ from __future__ import annotations
 
 from typing import Annotated, Literal, Union
 
-from pydantic import BaseModel, ConfigDict, Discriminator, Field, RootModel
+from pydantic import Discriminator, Field, RootModel
 
-
-def _to_camel(s: str) -> str:
-    head, *tail = s.split("_")
-    return head + "".join(w.capitalize() for w in tail)
-
-
-class _Base(BaseModel):
-    model_config = ConfigDict(
-        alias_generator=_to_camel,
-        populate_by_name=True,
-        extra="forbid",
-    )
+from ..base import _Base
 
 
 class Party(_Base):

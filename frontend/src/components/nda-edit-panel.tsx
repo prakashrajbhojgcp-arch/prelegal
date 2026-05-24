@@ -1,7 +1,7 @@
 "use client";
 
 import { NdaForm } from "./nda-form";
-import type { NdaData } from "@/lib/nda-schema";
+import type { NdaData } from "@/lib/templates/mutual-nda/schema";
 
 type Props = {
   value: NdaData;

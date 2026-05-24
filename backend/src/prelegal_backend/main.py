@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import auth, chat, db, templates
+from . import auth, db, templates
 from .settings import settings
 
 
@@ -36,8 +36,9 @@ def create_app() -> FastAPI:
         return {"status": "ok"}
 
     app.include_router(auth.router)
-    app.include_router(chat.router)
-    app.include_router(templates.router)
+    app.include_router(templates.catalog_api_router)
+    app.include_router(templates.chat_api_router)
+    app.include_router(templates.recommend_api_router)
     return app
 
 

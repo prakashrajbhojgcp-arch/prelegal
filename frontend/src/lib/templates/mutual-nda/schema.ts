@@ -1,4 +1,4 @@
-import { todayIso } from "./format";
+import { todayIso } from "../../format";
 
 export type Party = {
   name: string;

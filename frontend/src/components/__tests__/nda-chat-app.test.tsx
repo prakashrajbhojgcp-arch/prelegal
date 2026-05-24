@@ -2,9 +2,9 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
 import { NdaChatApp } from "@/components/nda-chat-app";
-import { defaultNdaData } from "@/lib/nda-schema";
+import { defaultNdaData } from "@/lib/templates/mutual-nda/schema";
 import type { Block } from "@/lib/markdown-blocks";
-import * as chatClient from "@/lib/nda-chat-client";
+import * as chatClient from "@/lib/templates/chat-client";
 
 afterEach(() => {
   cleanup();

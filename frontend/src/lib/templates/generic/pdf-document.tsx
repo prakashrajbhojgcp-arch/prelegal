@@ -7,9 +7,9 @@ import {
   View,
 } from "@react-pdf/renderer";
 import type { ReactElement } from "react";
-import { formatDate, pluralYears } from "./format";
-import type { Block, Inline } from "./markdown-blocks";
-import type { NdaData, Party } from "./nda-schema";
+import { formatDate } from "../../format";
+import type { Block, Inline } from "../../markdown-blocks";
+import type { FieldDef, GenericData } from "./schema";
 
 const palette = {
   ink: "#0f172a",
@@ -67,12 +67,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   cellLabel: {
-    // Override the parent `cell` style's `flex: 1` (which sets
-    // flexGrow:1 / flexShrink:1 / flexBasis:0). In react-pdf's Yoga
-    // layout, `flex: 0` only resets flexGrow, leaving flexShrink:1 and
-    // flexBasis:0 — which causes the label cell to collapse to ~17pt
-    // regardless of `width: "22%"`. Set the three flex properties
-    // explicitly so the label column actually takes its 22% basis.
     flexGrow: 0,
     flexShrink: 0,
     flexBasis: "22%",
@@ -107,10 +101,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   paragraph: { fontSize: 10.5, marginBottom: 8, textAlign: "justify" },
-  listRow: {
-    flexDirection: "row",
-    marginBottom: 8,
-  },
+  listRow: { flexDirection: "row", marginBottom: 8 },
   listNumber: { width: 22, fontSize: 10.5 },
   listBody: { flex: 1, fontSize: 10.5, textAlign: "justify" },
   bold: { fontFamily: "Helvetica-Bold" },
@@ -208,133 +199,123 @@ const CoverField = ({
   </View>
 );
 
-const placeholderText = (value: string, fallback: string) =>
-  value.trim() ? (
-    <Text style={styles.fieldBody}>{value}</Text>
-  ) : (
-    <Text style={[styles.fieldBody, styles.placeholder]}>{fallback}</Text>
+const isDateField = (key: string): boolean => /date/i.test(key);
+
+const placeholderText = (raw: string | undefined, key: string) => {
+  const trimmed = (raw ?? "").trim();
+  if (!trimmed) {
+    return <Text style={[styles.fieldBody, styles.placeholder]}>—</Text>;
+  }
+  return (
+    <Text style={styles.fieldBody}>
+      {isDateField(key) ? formatDate(trimmed) : trimmed}
+    </Text>
   );
+};
 
 const SignatureRow = ({
   label,
-  p1,
-  p2,
+  parties,
+  field,
+  transform,
 }: {
   label: string;
-  p1: string;
-  p2: string;
+  parties: GenericData["parties"];
+  field: keyof GenericData["parties"][number];
+  transform?: (s: string) => string;
 }) => (
   <View style={styles.row} wrap={false}>
     <Text style={[styles.cell, styles.cellLabel]}>{label}</Text>
-    <Text style={styles.cell}>{p1 || " "}</Text>
-    <Text style={styles.cell}>{p2 || " "}</Text>
+    {parties.map((p, index) => {
+      const raw = p[field] ?? "";
+      const display = raw && transform ? transform(raw) : raw;
+      return (
+        <Text key={index} style={styles.cell}>
+          {display || " "}
+        </Text>
+      );
+    })}
   </View>
 );
 
-const partyDate = (p: Party) => formatDate(p.date);
-
-const mndaTermText = (data: NdaData) =>
-  data.mndaTerm.kind === "years"
-    ? `Expires ${pluralYears(data.mndaTerm.years)} from the Effective Date.`
-    : "Continues until terminated in accordance with the terms of the MNDA.";
-
-const confTermText = (data: NdaData) =>
-  data.confidentialityTerm.kind === "years"
-    ? `${pluralYears(data.confidentialityTerm.years)} from the Effective Date, but in the case of trade secrets until the Confidential Information is no longer considered a trade secret under applicable laws.`
-    : "In perpetuity.";
-
 type Props = {
-  data: NdaData;
+  name: string;
+  manifest: FieldDef[];
+  data: GenericData;
   standardTermsBlocks: Block[];
 };
 
-export const NdaPdfDocument = ({ data, standardTermsBlocks }: Props) => (
+export const GenericPdfDocument = ({
+  name,
+  manifest,
+  data,
+  standardTermsBlocks,
+}: Props) => (
   <Document
-    title="Mutual NDA"
-    author={data.party1.company || data.party2.company || "Mutual NDA Creator"}
-    subject="Common Paper Mutual Non-Disclosure Agreement v1.0"
-    creator="Mutual NDA Creator"
-    producer="Mutual NDA Creator"
+    title={name}
+    author={data.parties[0]?.company || `${name} Creator`}
+    subject={name}
+    creator={`${name} Creator`}
+    producer={`${name} Creator`}
   >
     <Page size="LETTER" style={styles.page} wrap>
-      <Text style={styles.title}>Mutual Non-Disclosure Agreement</Text>
+      <Text style={styles.title}>{name}</Text>
       <Text style={styles.subtitle}>
-        This MNDA consists of this Cover Page and the Common Paper Mutual NDA
-        Standard Terms Version 1.0.
+        This {name} consists of this Cover Page and the standard terms below.
       </Text>
 
-      <CoverField label="Purpose">
-        {placeholderText(data.purpose, "[Describe the purpose]")}
-      </CoverField>
-      <CoverField label="Effective Date">
-        {placeholderText(formatDate(data.effectiveDate), "[Date]")}
-      </CoverField>
-      <CoverField label="MNDA Term">
-        <Text style={styles.fieldBody}>{mndaTermText(data)}</Text>
-      </CoverField>
-      <CoverField label="Term of Confidentiality">
-        <Text style={styles.fieldBody}>{confTermText(data)}</Text>
-      </CoverField>
-      <CoverField label="Governing Law & Jurisdiction">
-        <Text style={styles.fieldBody}>
-          <Text style={styles.bold}>Governing Law: </Text>
-          {data.governingLaw.trim() || (
-            <Text style={styles.placeholder}>[Fill in state]</Text>
-          )}
-        </Text>
-        <Text style={styles.fieldBody}>
-          <Text style={styles.bold}>Jurisdiction: </Text>
-          {data.jurisdiction.trim() || (
-            <Text style={styles.placeholder}>
-              [Fill in city or county and state]
-            </Text>
-          )}
-        </Text>
-      </CoverField>
-      <CoverField label="MNDA Modifications">
-        {placeholderText(data.modifications, "None.")}
-      </CoverField>
+      {manifest.map((field) => (
+        <CoverField key={field.key} label={field.label}>
+          {placeholderText(data.fields[field.key], field.key)}
+        </CoverField>
+      ))}
 
       <View style={styles.signatureSpacer}>
         <Text style={styles.signatureIntro}>
-          By signing this Cover Page, each party agrees to enter into this MNDA
-          as of the Effective Date.
+          By signing this Cover Page, each party agrees to enter into this
+          {" "}{name} as of the Effective Date.
         </Text>
         <View style={styles.table}>
           <View style={styles.row} wrap={false}>
             <Text style={[styles.cell, styles.cellLabel]}> </Text>
-            <Text style={[styles.cell, styles.cellHeader]}>Party 1</Text>
-            <Text style={[styles.cell, styles.cellHeader]}>Party 2</Text>
+            {data.parties.map((_, index) => (
+              <Text
+                key={index}
+                style={[styles.cell, styles.cellHeader]}
+              >
+                Party {index + 1}
+              </Text>
+            ))}
           </View>
           <SignatureRow
             label="Company"
-            p1={data.party1.company}
-            p2={data.party2.company}
+            parties={data.parties}
+            field="company"
           />
           <SignatureRow
             label="Print Name"
-            p1={data.party1.name}
-            p2={data.party2.name}
+            parties={data.parties}
+            field="name"
           />
-          <SignatureRow
-            label="Title"
-            p1={data.party1.title}
-            p2={data.party2.title}
-          />
+          <SignatureRow label="Title" parties={data.parties} field="title" />
           <SignatureRow
             label="Notice Address"
-            p1={data.party1.noticeAddress}
-            p2={data.party2.noticeAddress}
+            parties={data.parties}
+            field="noticeAddress"
           />
           <SignatureRow
             label="Date"
-            p1={partyDate(data.party1)}
-            p2={partyDate(data.party2)}
+            parties={data.parties}
+            field="date"
+            transform={formatDate}
           />
           <View style={styles.row} wrap={false}>
             <Text style={[styles.cell, styles.cellLabel]}>Signature</Text>
-            <Text style={[styles.cell, styles.cellSig]}> </Text>
-            <Text style={[styles.cell, styles.cellSig]}> </Text>
+            {data.parties.map((_, index) => (
+              <Text key={index} style={[styles.cell, styles.cellSig]}>
+                {" "}
+              </Text>
+            ))}
           </View>
         </View>
       </View>
